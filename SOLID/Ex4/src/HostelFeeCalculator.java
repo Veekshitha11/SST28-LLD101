@@ -1,9 +1,16 @@
 import java.util.*;
 
 public class HostelFeeCalculator {
-    private final FakeBookingRepo repo;
+    private final List<PricingComponent> components;
+    private final BookingRepository repo;
 
-    public HostelFeeCalculator(FakeBookingRepo repo) { this.repo = repo; }
+    public HostelFeeCalculator(List<PricingComponent> components,
+            BookingRepository repo) {
+
+        this.components = components;
+        this.repo = repo;
+        
+    }
 
     // OCP violation: switch + add-on branching + printing + persistence.
     public void process(BookingRequest req) {
@@ -17,21 +24,11 @@ public class HostelFeeCalculator {
     }
 
     private Money calculateMonthly(BookingRequest req) {
-        double base;
-        switch (req.roomType) {
-            case LegacyRoomTypes.SINGLE -> base = 14000.0;
-            case LegacyRoomTypes.DOUBLE -> base = 15000.0;
-            case LegacyRoomTypes.TRIPLE -> base = 12000.0;
-            default -> base = 16000.0;
-        }
+        Money monthly = new Money(0.0);
 
-        double add = 0.0;
-        for (AddOn a : req.addOns) {
-            if (a == AddOn.MESS) add += 1000.0;
-            else if (a == AddOn.LAUNDRY) add += 500.0;
-            else if (a == AddOn.GYM) add += 300.0;
+        for (PricingComponent c : components) {
+            monthly = monthly.plus(c.monthlyCharge(req));
         }
-
-        return new Money(base + add);
+        return monthly;
     }
 }
