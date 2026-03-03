@@ -18,35 +18,26 @@ public class TicketService {
 
     public IncidentTicket createTicket(String id, String reporterEmail, String title) {
         // scattered validation (incomplete on purpose)
-        if (id == null || id.trim().isEmpty()) throw new IllegalArgumentException("id required");
-        if (reporterEmail == null || !reporterEmail.contains("@")) throw new IllegalArgumentException("email invalid");
-        if (title == null || title.trim().isEmpty()) throw new IllegalArgumentException("title required");
+        // if (id == null || id.trim().isEmpty()) throw new IllegalArgumentException("id required");
+        // if (reporterEmail == null || !reporterEmail.contains("@")) throw new IllegalArgumentException("email invalid");
+        // if (title == null || title.trim().isEmpty()) throw new IllegalArgumentException("title required");
 
-        IncidentTicket t = new IncidentTicket(id, reporterEmail, title);
-
+        IncidentTicket.builder b = new IncidentTicket.builder();
         // BAD: mutating after creation
-        t.setPriority("MEDIUM");
-        t.setSource("CLI");
-        t.setCustomerVisible(false);
-
-        List<String> tags = new ArrayList<>();
-        tags.add("NEW");
-        t.setTags(tags);
-
+        b.setId(id).setReporterEmail(reporterEmail).setTitle(title)
+                .setPriority("MEDIUM")
+                .setCustomerVisible(true).setSource("CLI");
+        IncidentTicket t = b.build();
         return t;
     }
 
-    public void escalateToCritical(IncidentTicket t) {
+    public IncidentTicket  escalateToCritical(IncidentTicket t) {
         // BAD: mutating ticket after it has been "created"
-        t.setPriority("CRITICAL");
-        t.getTags().add("ESCALATED"); // list leak
+        return t.toBuilder().setPriority("CRITICAL").addTag("ESCALATED").build();
     }
 
-    public void assign(IncidentTicket t, String assigneeEmail) {
+    public IncidentTicket assign(IncidentTicket t, String assigneeEmail) {
         // scattered validation
-        if (assigneeEmail != null && !assigneeEmail.contains("@")) {
-            throw new IllegalArgumentException("assigneeEmail invalid");
-        }
-        t.setAssigneeEmail(assigneeEmail);
+        return t.toBuilder().setAssigneeEmail(assigneeEmail).build();
     }
 }
